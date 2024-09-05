@@ -3,13 +3,14 @@ package client
 import (
 	"bufio"
 	"bytes"
-	"ehang.io/nps/lib/nps_mux"
 	"net"
 	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"ehang.io/nps/lib/nps_mux"
 
 	"github.com/astaxie/beego/logs"
 	"github.com/xtaci/kcp-go"
@@ -34,7 +35,7 @@ type TRPClient struct {
 	once           sync.Once
 }
 
-//new client
+// new client
 func NewRPClient(svraddr string, vKey string, bridgeConnType string, proxyUrl string, cnf *config.Config, disconnectTime int) *TRPClient {
 	return &TRPClient{
 		svrAddr:        svraddr,
@@ -51,7 +52,7 @@ func NewRPClient(svraddr string, vKey string, bridgeConnType string, proxyUrl st
 var NowStatus int
 var CloseClient bool
 
-//start
+// start
 func (s *TRPClient) Start() {
 	CloseClient = false
 retry:
@@ -61,16 +62,16 @@ retry:
 	NowStatus = 0
 	c, err := NewConn(s.bridgeConnType, s.vKey, s.svrAddr, common.WORK_MAIN, s.proxyUrl)
 	if err != nil {
-		logs.Error("The connection server failed and will be reconnected in five seconds, error", err.Error())
+		logs.Error("Mnat内网穿透：服务连接失败，将在五秒后重试！", err.Error())
 		time.Sleep(time.Second * 5)
 		goto retry
 	}
 	if c == nil {
-		logs.Error("Error data from server, and will be reconnected in five seconds")
+		logs.Error("Mnat内网穿透：服务器数据错误，将在五秒后重试！")
 		time.Sleep(time.Second * 5)
 		goto retry
 	}
-	logs.Info("Successful connection with server %s", s.svrAddr)
+	logs.Info("Mnat内网穿透:连接成功连接服务！ %s", s.svrAddr)
 	//monitor the connection
 	go s.ping()
 	s.signal = c
@@ -85,12 +86,12 @@ retry:
 	s.handleMain()
 }
 
-//handle main connection
+// handle main connection
 func (s *TRPClient) handleMain() {
 	for {
 		flags, err := s.signal.ReadFlag()
 		if err != nil {
-			logs.Error("Accept server data error %s, end this service", err.Error())
+			logs.Error("Mnat内网穿透：接受服务器数据错误 %s, 结束此服务", err.Error())
 			break
 		}
 		switch flags {
@@ -142,7 +143,7 @@ func (s *TRPClient) newUdpConn(localAddr, rAddr string, md5Password string) {
 		}
 		if udpTunnel.RemoteAddr().String() == string(remoteAddress) {
 			conn.SetUdpSession(udpTunnel)
-			logs.Trace("successful connection with client ,address %s", udpTunnel.RemoteAddr().String())
+			logs.Trace("Mnat内网穿透：与客户端成功连接，地址 %s", udpTunnel.RemoteAddr().String())
 			//read link info from remote
 			conn.Accept(nps_mux.NewMux(udpTunnel, s.bridgeConnType, s.disconnectTime), func(c net.Conn) {
 				go s.handleChan(c)
@@ -152,11 +153,11 @@ func (s *TRPClient) newUdpConn(localAddr, rAddr string, md5Password string) {
 	}
 }
 
-//pmux tunnel
+// pmux tunnel
 func (s *TRPClient) newChan() {
 	tunnel, err := NewConn(s.bridgeConnType, s.vKey, s.svrAddr, common.WORK_CHAN, s.proxyUrl)
 	if err != nil {
-		logs.Error("connect to ", s.svrAddr, "error:", err)
+		logs.Error("Mnat内网穿透：连接到 ", s.svrAddr, "错误:", err)
 		return
 	}
 	s.tunnel = nps_mux.NewMux(tunnel.Conn, s.bridgeConnType, s.disconnectTime)
@@ -175,7 +176,7 @@ func (s *TRPClient) handleChan(src net.Conn) {
 	lk, err := conn.NewConn(src).GetLinkInfo()
 	if err != nil || lk == nil {
 		src.Close()
-		logs.Error("get connection info from server error ", err)
+		logs.Error("Mnat内网穿透：从服务器获取连接信息时出错！ ", err)
 		return
 	}
 	//host for target processing
@@ -183,7 +184,7 @@ func (s *TRPClient) handleChan(src net.Conn) {
 	//if Conn type is http, read the request and log
 	if lk.ConnType == "http" {
 		if targetConn, err := net.DialTimeout(common.CONN_TCP, lk.Host, lk.Option.Timeout); err != nil {
-			logs.Warn("connect to %s error %s", lk.Host, err.Error())
+			logs.Warn("Mnat内网穿透：连接到 %s 错误 %s", lk.Host, err.Error())
 			src.Close()
 		} else {
 			srcConn := conn.GetConn(src, lk.Crypt, lk.Compress, nil, false)
