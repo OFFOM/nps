@@ -185,7 +185,7 @@ func (s *ClientController) Edit() {
 }
 
 // 修改客户端
-func (s *ClientController) testEdit() {
+func (s *ClientController) TestEdit() {
 	// 从请求上下文中获取 "id" 参数，并将其解析为整数
 	id := s.GetIntNoErr("id")
 	// 检查 HTTP 请求方法是否为 'GET'
@@ -278,7 +278,7 @@ func (s *ClientController) testEdit() {
 }
 
 // 重置客户端流量限速
-func (s *ClientController) mnatedit() {
+func (s *ClientController) Mnatedit() {
 	// 从请求上下文中获取 "id" 参数，并将其解析为整数
 	id := s.GetIntNoErr("id")
 	// 检查 HTTP 请求方法是否为 'GET'
