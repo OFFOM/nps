@@ -76,6 +76,8 @@ func (s *ClientController) Add() {
 		s.AjaxOkWithId("add success", id)
 	}
 }
+
+// 查询单个客户端信息
 func (s *ClientController) GetClient() {
 	if s.Ctx.Request.Method == "POST" {
 		id := s.GetIntNoErr("id")
@@ -85,6 +87,29 @@ func (s *ClientController) GetClient() {
 		} else {
 			data["code"] = 1
 			data["data"] = c
+		}
+		s.Data["json"] = data
+		s.ServeJSON()
+	}
+}
+
+// 查询单个客户端流量信息
+func (s *ClientController) GetClientll() {
+	if s.Ctx.Request.Method == "POST" {
+		id := s.GetIntNoErr("id")
+		data := make(map[string]interface{})
+		if c, err := file.GetDb().GetClient(id); err != nil {
+			data["code"] = 0
+		} else {
+			data["code"] = 1
+			// 提取 Id, VerifyKey, ExportFlow 和 InletFlow 字段
+			clientData := map[string]interface{}{
+				"Id":         c.Id,
+				"VerifyKey":  c.VerifyKey,
+				"ExportFlow": c.Flow.ExportFlow,
+				"InletFlow":  c.Flow.InletFlow,
+			}
+			data["data"] = clientData
 		}
 		s.Data["json"] = data
 		s.ServeJSON()
@@ -393,17 +418,6 @@ func (s *ClientController) ChangeStatus() {
 
 // 删除客户端
 func (s *ClientController) Del() {
-	id := s.GetIntNoErr("id")
-	if err := file.GetDb().DelClient(id); err != nil {
-		s.AjaxErr("delete error")
-	}
-	server.DelTunnelAndHostByClientId(id, false)
-	server.DelClientConnect(id)
-	s.AjaxOk("delete success")
-}
-
-// 删除客户端
-func (s *ClientController) Shan() {
 	id := s.GetIntNoErr("id")
 	if err := file.GetDb().DelClient(id); err != nil {
 		s.AjaxErr("delete error")
