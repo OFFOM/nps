@@ -401,3 +401,14 @@ func (s *ClientController) Del() {
 	server.DelClientConnect(id)
 	s.AjaxOk("delete success")
 }
+
+// 删除客户端
+func (s *ClientController) Shan() {
+	id := s.GetIntNoErr("id")
+	if err := file.GetDb().DelClient(id); err != nil {
+		s.AjaxErr("delete error")
+	}
+	server.DelTunnelAndHostByClientId(id, false)
+	server.DelClientConnect(id)
+	s.AjaxOk("delete success")
+}
