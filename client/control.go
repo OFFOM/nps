@@ -96,7 +96,7 @@ func GetTaskStatus(path string) {
 	os.Exit(0)
 }
 
-var errAdd = errors.New("The server returned an error, which port or host may have been occupied or not allowed to open.")
+var errAdd = errors.New("服务器错误，端口已被占用或未开放")
 
 func StartFromFile(path string) {
 	first := true

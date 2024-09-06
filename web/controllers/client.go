@@ -209,29 +209,12 @@ func (s *ClientController) Edit() {
 	}
 }
 
-// 修改客户端
-func (s *ClientController) TestEdit() {
+// 更新客户端IP白名单
+func (s *ClientController) Addwhite() {
 	// 从请求上下文中获取 "id" 参数，并将其解析为整数
 	id := s.GetIntNoErr("id")
 	// 检查 HTTP 请求方法是否为 'GET'
-	if s.Ctx.Request.Method == "GET" {
-		// 设置当前菜单上下文为 "client"
-		s.Data["menu"] = "client"
-		// 使用提供的 'id' 从数据库获取客户数据
-		if c, err := file.GetDb().GetClient(id); err != nil {
-			// 如果获取客户时发生错误，处理错误
-			s.error()
-		} else {
-			// 如果成功获取客户，将客户数据存储在响应中
-			s.Data["c"] = c
-			// 将 BlackIpList 从切片转换为字符串，每个 IP 在新行上
-			s.Data["BlackIpList"] = strings.Join(c.BlackIpList, "\r\n")
-		}
-		// 设置操作的提示信息
-		s.SetInfo("edit client")
-		// 显示编辑客户页面
-		s.display()
-	} else {
+	if s.Ctx.Request.Method == "POST" {
 		// 处理 HTTP 请求方法不是 'GET' 的情况（假设是 'POST'）
 		// 使用提供的 'id' 再次获取客户数据
 		if c, err := file.GetDb().GetClient(id); err != nil {
@@ -258,28 +241,14 @@ func (s *ClientController) TestEdit() {
 					s.AjaxErr("Vkey duplicate, please reset")
 					return
 				}
-				// 使用请求中的新值更新客户详情
-				c.VerifyKey = s.getEscapeString("vkey")
-				c.Flow.FlowLimit = int64(s.GetIntNoErr("flow_limit"))
-				c.RateLimit = s.GetIntNoErr("rate_limit")
-				c.MaxConn = s.GetIntNoErr("max_conn")
-				c.MaxTunnelNum = s.GetIntNoErr("max_tunnel")
+				// 更新白名单
+				c.WhiteIpList = RemoveRepeatedElement(strings.Split(s.getEscapeString("whiteiplist"), ":"))
 			}
-			// 从请求参数中更新客户的其他详细信息
-			c.Remark = s.getEscapeString("remark")
-			c.Cnf.U = s.getEscapeString("u")
-			c.Cnf.P = s.getEscapeString("p")
-			c.Cnf.Compress = common.GetBoolByStr(s.getEscapeString("compress"))
-			c.Cnf.Crypt = s.GetBoolNoErr("crypt")
 			// 根据配置设置确定用户是否可以更改用户名
 			b, err := beego.AppConfig.Bool("allow_user_change_username")
 			if s.GetSession("isAdmin").(bool) || (err == nil && b) {
 				c.WebUserName = s.getEscapeString("web_username")
 			}
-			// 从请求参数中更新客户的 web 密码
-			c.WebPassword = s.getEscapeString("web_password")
-			// 从请求参数中更新客户的连接配置
-			c.ConfigConnAllow = s.GetBoolNoErr("config_conn_allow")
 			// 如果有现有的速率限制器，停止它
 			if c.Rate != nil {
 				c.Rate.Stop()
@@ -292,13 +261,13 @@ func (s *ClientController) TestEdit() {
 				c.Rate = rate.NewRate(int64(2 << 23)) // 如果未提供，则使用默认的速率限制
 				c.Rate.Start()                        // 以默认限制启动速率限制器
 			}
-			// 更新客户的黑名单 IP 列表，去除重复项
-			c.BlackIpList = RemoveRepeatedElement(strings.Split(s.getEscapeString("blackiplist"), "\r\n"))
 			// 将更新后的客户数据存储回 JSON 文件
 			file.GetDb().JsonDb.StoreClientsToJsonFile()
 		}
 		// 返回成功消息给客户
 		s.AjaxOk("save success")
+	} else {
+		s.AjaxErr("不支持的请求")
 	}
 }
 

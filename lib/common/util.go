@@ -312,7 +312,7 @@ func IsWhiteIp(ipPort, vkey string, whiteIpList []string) (bool, string) {
 	}
 	// 如果 IP 不在白名单中，记录日志并返回提示消息
 	logs.Error("IP地址[" + ip + "]不在隧道[" + vkey + "]白名单列表内")
-	return false, "您的IP地址[" + ip + "]不在白名单内，无法访问此服务。"
+	return false, "[" + ip + "]"
 }
 
 func CopyBuffer(dst io.Writer, src io.Reader, label ...string) (written int64, err error) {
