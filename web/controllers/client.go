@@ -307,24 +307,7 @@ func (s *ClientController) Mnatedit() {
 	// 从请求上下文中获取 "id" 参数，并将其解析为整数
 	id := s.GetIntNoErr("id")
 	// 检查 HTTP 请求方法是否为 'GET'
-	if s.Ctx.Request.Method == "GET" {
-		// 设置当前菜单上下文为 "client"
-		s.Data["menu"] = "client"
-		// 使用提供的 'id' 从数据库获取客户数据
-		if c, err := file.GetDb().GetClient(id); err != nil {
-			// 如果获取客户时发生错误，处理错误
-			s.error()
-		} else {
-			// 如果成功获取客户，将客户数据存储在响应中
-			s.Data["c"] = c
-			// 将 BlackIpList 从切片转换为字符串，每个 IP 在新行上
-			s.Data["BlackIpList"] = strings.Join(c.BlackIpList, "\r\n")
-		}
-		// 设置操作的提示信息
-		s.SetInfo("edit client")
-		// 显示编辑客户页面
-		s.display()
-	} else {
+	if s.Ctx.Request.Method == "POST" {
 		// 处理 HTTP 请求方法不是 'GET' 的情况（假设是 'POST'）
 		// 使用提供的 'id' 再次获取客户数据
 		if c, err := file.GetDb().GetClient(id); err != nil {
@@ -381,6 +364,8 @@ func (s *ClientController) Mnatedit() {
 		}
 		// 返回成功消息给客户
 		s.AjaxOk("save success")
+	} else {
+		s.AjaxErr("不支持的请求")
 	}
 }
 
