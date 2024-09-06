@@ -218,8 +218,8 @@ reset:
 		return
 	}
 
-	// 判断访问ip是否在白名单
-	if common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.BlackIpList) {
+	// 判断访问ip是否在白名单内
+	if !common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList) {
 		c.Close()
 		return
 	}
