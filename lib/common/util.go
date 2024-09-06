@@ -306,13 +306,13 @@ func IsBlackIp(ipPort, vkey string, blackIpList []string) bool {
 // 判断访问的IP地址是不是在白名单内
 func IsWhiteIp(ipPort, vkey string, whiteIpList []string) bool {
 	ip := GetIpByAddr(ipPort)
-	// 逻辑调整：如果IP不在白名单内，则返回 false 并记录日志
-	if in(ip, whiteIpList) { // 如果 IP 不在白名单中
-		logs.Error("IP地址[" + ip + "]不在隧道[" + vkey + "]白名单列表内")
-		return false
+	// 调整逻辑：如果 IP 在白名单中，则返回 true
+	if in(ip, whiteIpList) { // 如果 IP 在白名单中
+		return true
 	}
-
-	return true
+	// 如果不在白名单中，记录日志并返回 false
+	logs.Error("IP地址[" + ip + "]不在隧道[" + vkey + "]白名单列表内")
+	return false
 }
 
 func CopyBuffer(dst io.Writer, src io.Reader, label ...string) (written int64, err error) {
