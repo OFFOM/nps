@@ -219,7 +219,69 @@ reset:
 	}
 
 	// 判断访问ip是否在白名单内
-	if !common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList) {
+	isWhite, msg := common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList)
+	if !isWhite {
+		// 定义一个美观的提示页面
+		htmlContent := `
+			<!DOCTYPE html>
+			<html lang="zh-CN">
+			<head>
+				<meta charset="UTF-8">
+				<meta http-equiv="X-UA-Compatible" content="IE=edge">
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<title>访问限制</title>
+				<style>
+					body {
+						font-family: Arial, sans-serif;
+						background-color: #f4f4f9;
+						color: #333;
+						display: flex;
+						justify-content: center;
+						align-items: center;
+						height: 100vh;
+						margin: 0;
+					}
+					.container {
+						text-align: center;
+						background: #ffffff;
+						padding: 40px;
+						border-radius: 10px;
+						box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+					}
+					h1 {
+						color: #ff4b5c;
+					}
+					p {
+						margin: 20px 0;
+						font-size: 18px;
+					}
+					.btn {
+						display: inline-block;
+						padding: 10px 20px;
+						margin-top: 20px;
+						color: #fff;
+						background-color: #007bff;
+						border: none;
+						border-radius: 5px;
+						text-decoration: none;
+						font-size: 16px;
+						transition: background-color 0.3s ease;
+					}
+					.btn:hover {
+						background-color: #0056b3;
+					}
+				</style>
+			</head>
+			<body>
+				<div class="container">
+					<h1>访问受限</h1>
+					<p>` + msg + `</p>
+					<a href="#" class="btn">返回首页</a>
+				</div>
+			</body>
+			</html>
+		`
+		c.Write([]byte(htmlContent))
 		c.Close()
 		return
 	}

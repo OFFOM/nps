@@ -304,15 +304,15 @@ func IsBlackIp(ipPort, vkey string, blackIpList []string) bool {
 }
 
 // 判断访问的IP地址是不是在白名单内
-func IsWhiteIp(ipPort, vkey string, whiteIpList []string) bool {
+func IsWhiteIp(ipPort, vkey string, whiteIpList []string) (bool, string) {
 	ip := GetIpByAddr(ipPort)
-	// 调整逻辑：如果 IP 在白名单中，则返回 true
-	if in(ip, whiteIpList) { // 如果 IP 在白名单中
-		return true
+	// 如果 IP 在白名单中，返回 true
+	if in(ip, whiteIpList) {
+		return true, ""
 	}
-	// 如果不在白名单中，记录日志并返回 false
+	// 如果 IP 不在白名单中，记录日志并返回提示消息
 	logs.Error("IP地址[" + ip + "]不在隧道[" + vkey + "]白名单列表内")
-	return false
+	return false, "您的IP地址[" + ip + "]不在白名单内，无法访问此服务。"
 }
 
 func CopyBuffer(dst io.Writer, src io.Reader, label ...string) (written int64, err error) {
