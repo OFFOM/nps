@@ -357,7 +357,6 @@ func (s *ClientController) Mnatedit() {
 				c.Flow.FlowLimit = int64(s.GetIntNoErr("flow_limit"))   // 设置客户端的流量限制
 				c.RateLimit = s.GetIntNoErr("rate_limit")               // 设置客户端的速率限制
 				c.MaxConn = s.GetIntNoErr("max_conn")                   // 设置客户端的最大连接数
-				c.MaxTunnelNum = s.GetIntNoErr("max_tunnel")            // 设置客户端的最大隧道数
 			}
 			// 根据配置设置确定用户是否可以更改用户名
 			b, err := beego.AppConfig.Bool("allow_user_change_username")
@@ -376,8 +375,6 @@ func (s *ClientController) Mnatedit() {
 				c.Rate = rate.NewRate(int64(2 << 23)) // 如果未提供，则使用默认的速率限制
 				c.Rate.Start()                        // 以默认限制启动速率限制器
 			}
-			// 更新客户的黑名单 IP 列表，去除重复项
-			c.BlackIpList = RemoveRepeatedElement(strings.Split(s.getEscapeString("blackiplist"), "\r\n"))
 			// 将更新后的客户数据存储回 JSON 文件
 			file.GetDb().JsonDb.StoreClientsToJsonFile()
 		}
