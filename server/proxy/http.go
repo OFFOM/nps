@@ -152,13 +152,12 @@ func (s *httpServer) handleTunneling(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusServiceUnavailable)
 		}
 		// 处理被劫持的 HTTP 请求
-		s.handleHttp(conn.NewConn(c), r)
+		s.handleHttp(w, r, conn.NewConn(c)) // 传递 w, r 和 c
 	}
-
 }
 
 // handleHttp 方法用于处理 HTTP 请求，建立到目标服务器的隧道连接
-func (s *httpServer) handleHttp(c *conn.Conn, r *http.Request) {
+func (s *httpServer) handleHttp(w http.ResponseWriter, r *http.Request, c *conn.Conn) {
 	var (
 		host       *file.Host         // 用于存储主机信息
 		target     net.Conn           // 目标服务器的连接
@@ -231,10 +230,78 @@ reset: // 标签用于在需要时重新建立连接
 		return
 	}
 
-	// 白名单查验
+	// 检查客户端IP是否在白名单中
 	if !common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList) {
-		// 如果不在白名单内，显示提交白名单的页面
-		s.renderWhitelistSubmissionPage(w, r, c.RemoteAddr().String())
+		// 使用 http.ResponseWriter 返回 403 错误页面
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusForbidden) // 设置 403 Forbidden 状态码
+
+		// 更加美观的中文提示页面
+		pageContent := `
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>访问被禁止</title>
+        <style>
+            body {
+                font-family: "Arial", sans-serif;
+                background-color: #f9f9f9;
+                color: #333;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .container {
+                background-color: white;
+                padding: 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                max-width: 500px;
+                width: 100%;
+                text-align: center;
+            }
+            h1 {
+                font-size: 24px;
+                color: #e74c3c;
+                margin-bottom: 20px;
+            }
+            p {
+                font-size: 18px;
+                color: #555;
+            }
+            .contact {
+                margin-top: 20px;
+                font-size: 16px;
+                color: #888;
+            }
+            .contact a {
+                color: #3498db;
+                text-decoration: none;
+            }
+            .contact a:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>403 禁止访问</h1>
+            <p>您的 IP 地址（<strong>` + c.RemoteAddr().String() + `</strong>）未在白名单中。</p>
+            <p>如需访问，请联系管理员申请白名单权限。</p>
+            <div class="contact">
+                <p>联系方式：<a href="mailto:admin@example.com">admin@example.com</a></p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `
+
+		// 将页面内容写入响应
+		w.Write([]byte(pageContent))
 		return
 	}
 
@@ -327,60 +394,6 @@ reset: // 标签用于在需要时重新建立连接
 		}
 	}
 	wg.Wait() // 等待所有并发操作完成
-}
-
-func (s *httpServer) renderWhitelistSubmissionPage(w http.ResponseWriter, r *http.Request, clientIP string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusForbidden) // 返回 403 状态码
-
-	// HTML 页面内容
-	pageContent := `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Whitelist Submission Required</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                color: #333;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-            }
-            .container {
-                background-color: white;
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                text-align: center;
-                max-width: 400px;
-                width: 100%;
-            }
-            h1 {
-                color: #333;
-                margin-bottom: 20px;
-            }
-            p {
-                color: #666;
-                margin-bottom: 20px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Whitelist Submission Required</h1>
-            <p>Your IP address (<strong>` + clientIP + `</strong>) is not whitelisted. Please contact the administrator to request access.</p>
-        </div>
-    </body>
-    </html>`
-
-	// 将页面内容写入响应
-	w.Write([]byte(pageContent))
 }
 
 // resetReqMethod 函数重置请求方法，处理不完整的 HTTP 请求方法
