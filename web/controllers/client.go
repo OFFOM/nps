@@ -357,6 +357,7 @@ func (s *ClientController) Mnatedit() {
 				c.Flow.FlowLimit = int64(s.GetIntNoErr("flow_limit"))   // 设置客户端的流量限制
 				c.RateLimit = s.GetIntNoErr("rate_limit")               // 设置客户端的速率限制
 				c.MaxConn = s.GetIntNoErr("max_conn")                   // 设置客户端的最大连接数
+				c.WhiteIpList = RemoveRepeatedElement(strings.Split(s.getEscapeString("whiteiplist"), ":"))
 			}
 			// 根据配置设置确定用户是否可以更改用户名
 			b, err := beego.AppConfig.Bool("allow_user_change_username")

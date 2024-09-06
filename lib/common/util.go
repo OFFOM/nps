@@ -2,13 +2,10 @@ package common
 
 import (
 	"bytes"
-	"ehang.io/nps/lib/version"
 	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -20,6 +17,10 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"ehang.io/nps/lib/version"
+	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 
 	"ehang.io/nps/lib/crypt"
 )
@@ -300,6 +301,18 @@ func IsBlackIp(ipPort, vkey string, blackIpList []string) bool {
 	}
 
 	return false
+}
+
+// 判断访问的IP地址是不是在白名单内如果不在返回页面
+func IsWhiteIp(ipPort, vkey string, whiteIpList []string) bool {
+	ip := GetIpByAddr(ipPort)
+	// 逻辑调整：如果IP不在白名单内，则返回 false 并记录日志
+	if !in(ip, whiteIpList) { // 如果 IP 不在白名单中
+		logs.Error("IP地址[" + ip + "]不在隧道[" + vkey + "]白名单列表内")
+		return false
+	}
+
+	return true
 }
 
 func CopyBuffer(dst io.Writer, src io.Reader, label ...string) (written int64, err error) {

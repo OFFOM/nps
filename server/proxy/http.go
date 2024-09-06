@@ -231,6 +231,74 @@ reset: // 标签用于在需要时重新建立连接
 		return
 	}
 
+	// 白名单查验
+	if !common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList) {
+	// 如果不在白名单内，显示提交白名单的页面
+	s.renderWhitelistSubmissionPage(w, r, c.RemoteAddr().String())
+	return
+	}
+
+
+
+	func (s *httpServer) renderWhitelistSubmissionPage(w http.ResponseWriter, r *http.Request, clientIP string) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusForbidden) // 返回 403 状态码
+	
+		// HTML 页面内容
+		pageContent := `
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1.0">
+			<title>Whitelist Submission Required</title>
+			<style>
+				body {
+					font-family: Arial, sans-serif;
+					background-color: #f4f4f4;
+					color: #333;
+					display: flex;
+					justify-content: center;
+					align-items: center;
+					height: 100vh;
+					margin: 0;
+				}
+				.container {
+					background-color: white;
+					padding: 20px;
+					border-radius: 10px;
+					box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+					text-align: center;
+					max-width: 400px;
+					width: 100%;
+				}
+				h1 {
+					color: #333;
+					margin-bottom: 20px;
+				}
+				p {
+					color: #666;
+					margin-bottom: 20px;
+				}
+				.form-group {
+					margin-bottom: 15px;
+					text-align: left;
+				}
+			</style>
+		</head>
+		<body>
+			<div class="container">
+				<h1>Whitelist Submission Required</h1>
+				<p>Your IP address (<strong>` + clientIP + `</strong>) is not whitelisted. Please contact the administrator to request access.</p>
+			</div>
+		</body>
+		</html>`
+	
+		// 将页面内容写入响应
+		w.Write([]byte(pageContent))
+	}	
+
+
 	// 建立新的隧道连接
 	lk = conn.NewLink("http", targetAddr, host.Client.Cnf.Crypt, host.Client.Cnf.Compress, r.RemoteAddr, host.Target.LocalProxy) // 创建新的链接对象
 	if target, err = s.bridge.SendLinkInfo(host.Client.Id, lk, nil); err != nil {                                                // 发送链接信息到目标服务器
