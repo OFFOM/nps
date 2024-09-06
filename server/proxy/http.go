@@ -232,6 +232,7 @@ reset: // 标签用于在需要时重新建立连接
 
 	// 检查客户端IP是否在白名单中
 	if !common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList) {
+		logs.Debug("IP地址[" + c.RemoteAddr().String() + "]不在白名单中，返回403错误页面")
 		// 使用 http.ResponseWriter 返回 403 错误页面
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusForbidden) // 设置 403 Forbidden 状态码

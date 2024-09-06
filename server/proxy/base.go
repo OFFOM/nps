@@ -127,7 +127,7 @@ func (s *BaseServer) DealClient(c *conn.Conn, client *file.Client, addr string,
 		httpResponse := "HTTP/1.1 403 Forbidden\r\n" + // 返回403 Forbidden状态码
 			"Content-Type: text/html\r\n" +
 			"Connection: close\r\n\r\n" + // 响应头结束
-			"<html><body><h1>403 Forbidden</h1><p>Your IP is blacklisted.</p></body></html>"
+			"<html><body><h1>403 Forbidden</h1><p>ip在黑名单中.</p></body></html>"
 
 		// 将HTTP响应写入连接
 		c.Write([]byte(httpResponse))
