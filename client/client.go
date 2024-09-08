@@ -71,7 +71,7 @@ retry:
 		time.Sleep(time.Second * 5)
 		goto retry
 	}
-	logs.Info("Mnat内网穿透:服务连接器成功！!")
+	logs.Info("Mnat内网穿透:服务连接器成功！！")
 	//monitor the connection
 	go s.ping()
 	s.signal = c

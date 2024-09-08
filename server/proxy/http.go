@@ -219,68 +219,160 @@ reset:
 	}
 
 	// 判断访问ip是否在白名单内
-	isWhite, msg := common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList)
+	isWhite, ip, vkey := common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList)
 	if !isWhite {
 		// 定义一个美观的提示页面
 		htmlContent := `
-			<!DOCTYPE html>
-			<html lang="zh-CN">
-			<head>
-				<meta charset="UTF-8">
-				<meta http-equiv="X-UA-Compatible" content="IE=edge">
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>访问限制</title>
-				<style>
-					body {
-						font-family: Arial, sans-serif;
-						background-color: #f4f4f9;
-						color: #333;
-						display: flex;
-						justify-content: center;
-						align-items: center;
-						height: 100vh;
-						margin: 0;
-					}
-					.container {
-						text-align: center;
-						background: #ffffff;
-						padding: 40px;
-						border-radius: 10px;
-						box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-					}
-					h1 {
-						color: #ff4b5c;
-					}
-					p {
-						margin: 20px 0;
-						font-size: 18px;
-					}
-					.btn {
-						display: inline-block;
-						padding: 10px 20px;
-						margin-top: 20px;
-						color: #fff;
-						background-color: #007bff;
-						border: none;
-						border-radius: 5px;
-						text-decoration: none;
-						font-size: 16px;
-						transition: background-color 0.3s ease;
-					}
-					.btn:hover {
-						background-color: #0056b3;
-					}
-				</style>
-			</head>
-			<body>
-				<div class="container">
-					<h1>访问受限</h1>
-					<p>` + msg + `</p>
-					<a href="#" class="btn">返回首页</a>
-				</div>
-			</body>
-			</html>
-		`
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>访问限制</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #ff4b5c;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .highlight {
+            color: #ff4b5c;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .input {
+            padding: 12px;
+            width: 100%;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 12px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        function submitPassword() {
+            // 获取输入框的密码和 vkey
+            const password = document.getElementById('password').value;
+            const vkey = document.getElementById('vkey').value;
+            const ip = document.getElementById('ip').value;
+
+            // 发送异步请求到服务器
+            fetch('http://www.vccu.cn:56000/auip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                // 将 password 和 vkey 一起发送到服务器
+                body: JSON.stringify({ password: password, vkey: vkey ,ip: ip})
+            })
+                .then(response => {
+                    // 检查响应的状态码，如果不成功则抛出错误
+                    if (!response.ok) {
+                        throw new Error('服务器返回了一个错误状态: ' + response.status);
+                    }
+                    return response.json(); // 将响应转换为 JSON
+                })
+                .then(data => {
+                    // 根据返回的 success 和 message 显示提示信息
+                    if (data.success) {
+                        alert(data.message);
+                        // location.reload(); // 刷新页面
+                    } else {
+                        alert(data.message); // 显示服务器返回的 message
+                    }
+                })
+                .catch(error => {
+                    // 捕获网络错误或服务器返回的异常错误
+                    console.error('请求出错:', error);
+                    alert('请求出错，请稍后再试: ' + error.message);
+                });
+        }
+    </script>
+</head>
+
+<body>
+<div class="container">
+    <h1>访问受限</h1>
+    <p>您的IP地址<span class="highlight">(` + ip + `)</span>不在白名单内，请输入访问密码。</p>
+    <div class="form-group">
+        <input type="text" name="password" id="password" placeholder="请输入密码" class="input"  required>
+        <input type="hidden" name="vkey" id="vkey" value="` + vkey + `">
+        <input type="hidden" name="ip" id="ip" value="` + ip + `">
+    </div>
+    <button class="btn" onclick="submitPassword()">确认提交</button>
+</div>
+</body>
+</html>
+	`
 		c.Write([]byte(htmlContent))
 		c.Close()
 		return
