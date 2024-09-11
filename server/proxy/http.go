@@ -218,11 +218,13 @@ reset:
 		return
 	}
 
-	// 判断访问ip是否在白名单内
-	isWhite, ip, vkey := common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList)
-	if !isWhite {
-		// 定义一个美观的提示页面
-		htmlContent := `
+	// 判断是否开启白名单
+	if host.Client.WhiteIpis == "1" {
+		// 判断访问ip是否在白名单内
+		isWhite, ip, vkey := common.IsWhiteIp(c.RemoteAddr().String(), host.Client.VerifyKey, host.Client.WhiteIpList)
+		if !isWhite {
+			// 定义一个美观的提示页面
+			htmlContent := `
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -373,9 +375,10 @@ reset:
 </body>
 </html>
 	`
-		c.Write([]byte(htmlContent))
-		c.Close()
-		return
+			c.Write([]byte(htmlContent))
+			c.Close()
+			return
+		}
 	}
 
 	// 创建连接链接信息

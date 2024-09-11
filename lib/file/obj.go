@@ -54,6 +54,7 @@ type Client struct {
 	BlackIpList     []string
 	WhiteIpList     []string
 	LastOnlineTime  string
+	WhiteIpis       string
 	sync.RWMutex
 }
 
