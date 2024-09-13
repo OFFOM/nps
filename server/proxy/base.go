@@ -142,7 +142,7 @@ func (s *BaseServer) DealClient(c *conn.Conn, client *file.Client, addr string,
 		isWhite, ip, vkey := common.IsWhiteIp(c.RemoteAddr().String(), client.VerifyKey, client.WhiteIpList)
 		if !isWhite {
 			// 定义一个美观的提示页面
-			htmlContent := `
+			httpResponse := `
 	<!DOCTYPE html>
 	<html lang="zh-CN">
 	
@@ -293,8 +293,9 @@ func (s *BaseServer) DealClient(c *conn.Conn, client *file.Client, addr string,
 	</body>
 	</html>
 		`
-			c.Write([]byte(htmlContent))
-			c.Close()
+			c.Write([]byte(httpResponse))
+
+			c.Close() // 发送响应后关闭连接
 			return nil
 		}
 	}

@@ -69,6 +69,7 @@ func (s *ClientController) Add() {
 				FlowLimit:  int64(s.GetIntNoErr("flow_limit")),
 			},
 			BlackIpList: RemoveRepeatedElement(strings.Split(s.getEscapeString("blackiplist"), "\r\n")),
+			WhiteIpList: RemoveRepeatedElement(strings.Split(s.getEscapeString("whiteiplist"), "\r\n")),
 			WhiteIpis:   s.getEscapeString("whiteipis"),
 		}
 		if err := file.GetDb().NewClient(t); err != nil {
