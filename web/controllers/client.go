@@ -74,7 +74,7 @@ func (s *ClientController) Add() {
 		if err := file.GetDb().NewClient(t); err != nil {
 			s.AjaxErr(err.Error())
 		}
-		s.AjaxOkWithId("add success", id)
+		s.AjaxOkWithId("add success", id, "yes")
 	}
 }
 

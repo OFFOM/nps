@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"ehang.io/nps/bridge"
 	"html"
 	"math"
 	"strconv"
 	"strings"
 	"time"
+
+	"ehang.io/nps/bridge"
 
 	"ehang.io/nps/lib/common"
 	"ehang.io/nps/lib/crypt"
@@ -21,7 +22,7 @@ type BaseController struct {
 	actionName     string
 }
 
-//初始化参数
+// 初始化参数
 func (s *BaseController) Prepare() {
 	s.Data["web_base_url"] = beego.AppConfig.String("web_base_url")
 	controllerName, actionName := s.GetControllerAndAction()
@@ -66,7 +67,7 @@ func (s *BaseController) Prepare() {
 	s.Data["allow_user_change_username"], _ = beego.AppConfig.Bool("allow_user_change_username")
 }
 
-//加载模板
+// 加载模板
 func (s *BaseController) display(tpl ...string) {
 	s.Data["web_base_url"] = beego.AppConfig.String("web_base_url")
 	var tplname string
@@ -100,19 +101,19 @@ func (s *BaseController) display(tpl ...string) {
 	s.TplName = tplname
 }
 
-//错误
+// 错误
 func (s *BaseController) error() {
 	s.Data["web_base_url"] = beego.AppConfig.String("web_base_url")
 	s.Layout = "public/layout.html"
 	s.TplName = "public/error.html"
 }
 
-//getEscapeString
+// getEscapeString
 func (s *BaseController) getEscapeString(key string) string {
 	return html.EscapeString(s.GetString(key))
 }
 
-//去掉没有err返回值的int
+// 去掉没有err返回值的int
 func (s *BaseController) GetIntNoErr(key string, def ...int) int {
 	strv := s.Ctx.Input.Query(key)
 	if len(strv) == 0 && len(def) > 0 {
@@ -122,7 +123,7 @@ func (s *BaseController) GetIntNoErr(key string, def ...int) int {
 	return val
 }
 
-//获取去掉错误的bool值
+// 获取去掉错误的bool值
 func (s *BaseController) GetBoolNoErr(key string, def ...bool) bool {
 	strv := s.Ctx.Input.Query(key)
 	if len(strv) == 0 && len(def) > 0 {
@@ -132,28 +133,28 @@ func (s *BaseController) GetBoolNoErr(key string, def ...bool) bool {
 	return val
 }
 
-//ajax正确返回
+// ajax正确返回
 func (s *BaseController) AjaxOk(str string) {
 	s.Data["json"] = ajax(str, 1)
 	s.ServeJSON()
 	s.StopRun()
 }
 
-//ajax正确返回
-func (s *BaseController) AjaxOkWithId(str string, id int) {
-	s.Data["json"] = ajaxWithId(str, 1, id)
+// ajax正确返回
+func (s *BaseController) AjaxOkWithId(str string, id int, vkey string) {
+	s.Data["json"] = ajaxWithId(str, 1, id, vkey)
 	s.ServeJSON()
 	s.StopRun()
 }
 
-//ajax错误返回
+// ajax错误返回
 func (s *BaseController) AjaxErr(str string) {
 	s.Data["json"] = ajax(str, 0)
 	s.ServeJSON()
 	s.StopRun()
 }
 
-//组装ajax
+// 组装ajax
 func ajax(str string, status int) map[string]interface{} {
 	json := make(map[string]interface{})
 	json["status"] = status
@@ -161,16 +162,17 @@ func ajax(str string, status int) map[string]interface{} {
 	return json
 }
 
-//组装ajax
-func ajaxWithId(str string, status int, id int) map[string]interface{} {
+// 组装ajax
+func ajaxWithId(str string, status int, id int, vkey string) map[string]interface{} {
 	json := make(map[string]interface{})
 	json["status"] = status
 	json["msg"] = str
 	json["id"] = id
+	json["vkey"] = vkey
 	return json
 }
 
-//ajax table返回
+// ajax table返回
 func (s *BaseController) AjaxTable(list interface{}, cnt int, recordsTotal int, kwargs map[string]interface{}) {
 	json := make(map[string]interface{})
 	json["rows"] = list
@@ -187,7 +189,7 @@ func (s *BaseController) AjaxTable(list interface{}, cnt int, recordsTotal int, 
 	s.StopRun()
 }
 
-//ajax table参数
+// ajax table参数
 func (s *BaseController) GetAjaxParams() (start, limit int) {
 	return s.GetIntNoErr("offset"), s.GetIntNoErr("limit")
 }
