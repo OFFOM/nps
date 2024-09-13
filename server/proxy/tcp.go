@@ -194,6 +194,7 @@ func (s *TunnelModeServer) Start() error {
 	</body>
 	</html>
 		`
+				c.Write([]byte("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n"))
 				c.Write([]byte(httpResponse))
 				c.Close() // 发送响应后关闭连接
 				return
